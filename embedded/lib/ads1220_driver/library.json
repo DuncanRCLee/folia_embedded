@@ -1,0 +1,22 @@
+{
+  "name": "ads1220_driver",
+  "version": "1.0.0",
+  "description": "Driver for TI ADS1220 24-bit ADC with SPI interface for strain gauge readout",
+  "keywords": ["adc", "ads1220", "texas-instruments", "spi", "strain-gauge"],
+  "authors": [
+    {
+      "name": "Matt"
+    }
+  ],
+  "license": "MIT",
+  "frameworks": ["arduino"],
+  "platforms": ["renesas_ra", "ststm32"],
+  "build": {
+    "flags": ["-std=c++17"],
+    "srcFilter": [
+      "+<*>",
+      "-<.git/>",
+      "-<test/>"
+    ]
+  }
+}

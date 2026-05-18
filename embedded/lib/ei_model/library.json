@@ -1,0 +1,45 @@
+{
+    "name": "ei_model",
+    "version": "1.0.0",
+    "description": "Edge Impulse inference library - terrain_classifier_wb-cpp-mcu-v1",
+    "keywords": ["edge-impulse", "inference", "classifier", "machine-learning"],
+    "frameworks": ["arduino"],
+    "platforms": ["ststm32"],
+    "build": {
+        "flags": [
+            "-DEI_CLASSIFIER_ENABLED",
+            "-DEI_PORTING_ARDUINO=1"
+        ],
+        "srcFilter": [
+            "+<*>",
+            "-<.git/>",
+            "-<examples/>",
+            "-<edge-impulse-sdk/porting/ambiq/>",
+            "-<edge-impulse-sdk/porting/android/>",
+            "-<edge-impulse-sdk/porting/brickml/>",
+            "-<edge-impulse-sdk/porting/ceva-npn/>",
+            "-<edge-impulse-sdk/porting/clib/>",
+            "-<edge-impulse-sdk/porting/espressif/>",
+            "-<edge-impulse-sdk/porting/ethos-core-driver/>",
+            "-<edge-impulse-sdk/porting/himax/>",
+            "-<edge-impulse-sdk/porting/himax-we2/>",
+            "-<edge-impulse-sdk/porting/iar/>",
+            "-<edge-impulse-sdk/porting/infineon-psoc62/>",
+            "-<edge-impulse-sdk/porting/mbed/>",
+            "-<edge-impulse-sdk/porting/mingw32/>",
+            "-<edge-impulse-sdk/porting/mxchip/>",
+            "-<edge-impulse-sdk/porting/particle/>",
+            "-<edge-impulse-sdk/porting/posix/>",
+            "-<edge-impulse-sdk/porting/raspberry/>",
+            "-<edge-impulse-sdk/porting/renesas-ra/>",
+            "-<edge-impulse-sdk/porting/seeed-vision-ai/>",
+            "-<edge-impulse-sdk/porting/silabs/>",
+            "-<edge-impulse-sdk/porting/sony/>",
+            "-<edge-impulse-sdk/porting/stm32-cubeai/>",
+            "-<edge-impulse-sdk/porting/synaptics/>",
+            "-<edge-impulse-sdk/porting/ti/>",
+            "-<edge-impulse-sdk/porting/zephyr/>",
+            "-<edge-impulse-sdk/tensorflow/lite/micro/kernels/esp_nn/>"
+        ]
+    }
+}

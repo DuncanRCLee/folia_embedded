@@ -1,0 +1,188 @@
+syntax = "proto3";
+
+package imu;
+
+
+message IMUFrameDebug {
+    bool ok = 1;
+}
+
+message IMUFrameHR {
+    float a_x = 1;
+    float a_y = 2;
+    float a_z = 3;
+
+    float w_x = 4;
+    float w_y = 5;
+    float w_z = 6;
+
+    float qw = 7;
+    float qx = 8;
+    float qy = 9;
+    float qz = 10;
+
+    // float mag_x = 11;
+    // float mag_y = 12;
+    // float mag_z = 13;
+
+    float dv_x = 14;
+    float dv_y = 15;
+    float dv_z = 16;
+
+    float dq_w = 17;
+    float dq_x = 18;
+    float dq_y = 19;
+    float dq_z = 20;
+
+    // Folia-specific fields
+    uint32 motor_state = 21;
+    float adc_raw = 22;
+    float adc_baseline = 23;
+}
+
+// Classifier mode packet - includes IMU data plus classifier output
+message IMUFrameClassifier {
+    float a_x = 1;
+    float a_y = 2;
+    float a_z = 3;
+
+    float w_x = 4;
+    float w_y = 5;
+    float w_z = 6;
+
+    float vel_fwd = 7;
+    float vel_lat = 8;
+    float vel_z = 9;
+
+    float pos_fwd = 10;
+    float pos_lat = 11;
+    float pos_z = 12;
+
+    float w_sag  = 13;
+    float pitch = 14;
+
+    // Folia-specific fields
+    uint32 motor_state = 15;
+    float adc_raw = 16;
+    float adc_baseline = 17;
+
+    uint32 stance = 18;      // 1 = stance (ZUPT active), 0 = swing
+    uint32 foot_flat = 19;    // Based on SHOE, indicates foot flat within stance
+    float shoe_statistic = 20;      // SHOE test statistic T (for threshold tuning)
+
+    // Classifier output
+    uint32 classifier_label = 21;
+    uint32 classifier_confidence = 22;  // 0-100 as percentage
+    uint32 classifier_stable_label = 23;
+
+    // ADD THESE: Per-class confidence scores (0.0 - 1.0)
+    float conf_dec = 24;  // Class 0: decline
+    float conf_dst = 25;  // Class 1: downstairs
+    float conf_idl = 26;  // Class 2: idle
+    float conf_inc = 27;  // Class 2: incline
+    float conf_lvl = 28;  // Class 3: level
+    float conf_ust = 29;  // Class 4: upstairs
+}
+
+// Gait filter debug packet - IMU + filter state for logging/testing
+message IMUFrameGait {
+    // Raw IMU data
+    float a_x = 1;
+    float a_y = 2;
+    float a_z = 3;
+    
+    float w_x = 4;
+    float w_y = 5;
+    float w_z = 6;
+    
+    // Filter estimated velocity (world frame)
+    float vel_x = 7;
+    float vel_y = 8;
+    float vel_fwd = 9;
+    float vel_lat = 10;
+    float vel_z = 11;
+    
+    // Filter estimated position (step-relative, world frame)
+    float pos_x = 12;
+    float pos_y = 13;
+    float pos_fwd = 14;
+    float pos_lat = 15;
+    float pos_z = 16;
+
+    float w_sag  = 17;
+    float pitch = 18;
+
+    float walking_direction = 19;
+    
+    // Stance detection status
+    uint32 stance = 20;      // 1 = stance (ZUPT active), 0 = swing
+    uint32 foot_flat = 21;    // Based on SHOE, indicates foot flat within stance
+    float shoe_statistic = 22;      // SHOE test statistic T (for threshold tuning)
+    uint32 step_count = 23;         // Cumulative step count
+    uint32 gait_phase = 24;         // 0=unknown, 1=stance, 2=swing, 3=heelstrike, 4=toeoff
+    
+    // Stance detection debug fields
+    uint32 debounce_counter = 25;   // Current debounce counter value
+    uint32 raw_should_enter = 26;   // Raw stance entry signal (before debounce)
+    uint32 raw_should_exit = 27;    // Raw stance exit signal (before debounce)
+
+    // Folia-specific fields
+    float adc_raw = 28;
+    float adc_baseline = 29;
+}
+
+message IMUFrameTrain {
+    // Raw IMU data
+    float a_x = 1;
+    float a_y = 2;
+    float a_z = 3;
+    float w_x = 4;
+    float w_y = 5;
+    float w_z = 6;
+    
+    // Filter estimated velocity
+    float vel_x = 7;
+    float vel_y = 8;
+    float vel_fwd = 9;
+    float vel_lat = 10;
+    float vel_z = 11;
+    
+    // Filter estimated position
+    float pos_x = 12;
+    float pos_y = 13;
+    float pos_fwd = 14;
+    float pos_lat = 15;
+    float pos_z = 16;
+
+    // Sagittal plane angular rate
+    float w_sag  = 17;
+    float pitch = 18;
+
+    float adc_raw = 19;
+    float adc_baseline = 20;
+
+    // Stance detection
+    uint32 stance = 21;      // 1 = stance (ZUPT active), 0 = swing
+    uint32 foot_flat = 22;    // Based on SHOE, indicates foot flat within stance
+    float shoe_statistic = 23;      // SHOE test statistic T (for threshold tuning)
+}
+
+enum ViconMode {
+    None = 0;
+    Start = 1;
+    Stop = 2;
+}
+
+message Packet {
+    int64 time_milis = 1;
+    uint32 sample_time_fine = 5;  // MTi 10kHz counter (0.1ms resolution)
+
+    oneof payload {
+        ViconMode mode = 4;
+        IMUFrameHR imu = 2;
+        IMUFrameDebug imu_dbg = 3;
+        IMUFrameClassifier imu_classifier = 6;
+        IMUFrameGait imu_gait = 7;
+        IMUFrameTrain imu_train = 8;
+    }
+}

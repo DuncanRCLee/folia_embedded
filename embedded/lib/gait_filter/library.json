@@ -1,0 +1,16 @@
+{
+    "name": "gait_filter",
+    "version": "1.0.0",
+    "description": "Step-to-step position estimation filter for gait terrain classification using MTI-3 IMU",
+    "keywords": ["eskf", "imu", "gait", "filter", "mti3"],
+    "authors": [
+        {
+            "name": "Folia Team"
+        }
+    ],
+    "dependencies": {
+        "hideakitai/ArduinoEigen": "^0.3.2"
+    },
+    "frameworks": ["arduino"],
+    "platforms": ["ststm32"]
+}

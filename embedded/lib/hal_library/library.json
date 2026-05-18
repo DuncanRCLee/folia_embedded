@@ -1,0 +1,21 @@
+{
+    "name": "hal_library",
+    "version": "1.0.0",
+    "description": "mini hal",
+    "keywords": ["hal", "rtos", "mbed", "freertos", "xsens", "mti", "imu", "abstraction"],
+    "authors": [
+        {
+            "name": "Matt",
+            "maintainer": true
+        }
+    ],
+    "license": "MIT",
+    "platforms": ["ststm32", "renesas_ra", "native"],
+    "build": {
+        "flags": ["-std=c++17"],
+        "srcFilter": ["+<*>"]
+    },
+    "export": {
+        "include": ["include"]
+    }
+}
