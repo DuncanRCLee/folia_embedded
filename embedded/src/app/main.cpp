@@ -13,6 +13,8 @@
 #include "ei_classifier.hpp"
 #include "control.hpp"
 #include "util.hpp"
+#include "app_context.hpp"
+#include "data/packet_codec.hpp"
 #include "arduino_secrets.h"
 
 // Gait filter for terrain classification
@@ -22,36 +24,27 @@
 #ifdef ARDUINO_ARCH_MBED
     #include "platform/Platform.h"
 #endif
-#include "imu_packet.hpp"
-#include "gen/Packet.pb.h"
-#include "pb_encode.h"
+#include "data/imu_packet.hpp"
 
-hal::Event drdy_event;
-xsens::MTi* mti = NULL;
-
-std::atomic<bool> logging_active{false};
-
-// Queue for batching IMU packets (holds 32 pre-encoded packets)
-hal::Queue<IMUPacketSlot, 32>* imuQueue = nullptr;
-bool failstate = false;
-
-// Shank pitch calibration: reference angle during standing
-float g_standingPitchOffset = 0.0f;
+namespace {
+hal::Event& drdy_event = app::g_app.drdyEvent;
+xsens::MTi*& mti = app::g_app.mti;
+std::atomic<bool>& logging_active = app::g_app.loggingActive;
+hal::Queue<IMUPacketSlot, 32>*& imuQueue = app::g_app.imuQueue;
+bool& failstate = app::g_app.failstate;
+float& g_standingPitchOffset = app::g_app.standingPitchOffset;
+vertiq::Motor*& motor = app::g_app.motor;
+vertiq::MotorCommandQueue*& motorQueue = app::g_app.motorQueue;
+vertiq::VirtualMotorCommandQueue*& virtualMotorQueue = app::g_app.virtualMotorQueue;
+adc::ADS1220*& adcDevice = app::g_app.adcDevice;
+bool& enableMotor = app::g_app.enableMotor;
+bool& enableAdc = app::g_app.enableAdc;
+}
 
 // ADS1220 ADC conversion: 24-bit two's complement, Vref = 2.048V
 // V = counts * 2.048 / 2^23.  Value is baseline-subtracted and inverted
 // in the driver so positive = loaded.
 static constexpr float ADC_COUNTS_TO_VOLTS = 2.048f / 8388608.0f;
-
-// Folia components
-vertiq::Motor* motor = nullptr;
-vertiq::MotorCommandQueue* motorQueue = nullptr;
-vertiq::VirtualMotorCommandQueue* virtualMotorQueue = nullptr;
-adc::ADS1220* adcDevice = nullptr;
-
-// Enable/disable folia features
-bool enableMotor = true;
-bool enableAdc = true;
 
 void ingestISR() {
     hal::eventGiveFromISR(drdy_event);
@@ -210,16 +203,16 @@ void setup() {
     imuQueue = new hal::Queue<IMUPacketSlot, 32>();
     Serial.println("IMU queue initialized");
 
-    static void* logging_args[2];
-    logging_args[0] = imuQueue;
-    logging_args[1] = &logging_active;
-    hal::taskCreate(network::logging_task, logging_args, "logging_task", 4096, 2);
+    static network::LoggingTaskArgs loggingArgs;
+    loggingArgs.imuQueue = imuQueue;
+    loggingArgs.loggingActive = &logging_active;
+    hal::taskCreate(network::logging_task, &loggingArgs, "logging_task", 4096, 2);
 
-    static void* console_args[3];
-    console_args[0] = motorQueue;
-    console_args[1] = adcDevice;
-    console_args[2] = &logging_active;
-    hal::taskCreate(network::console_task, console_args, "console_task", 4096, 2);
+    static network::ConsoleTaskArgs consoleArgs;
+    consoleArgs.commandQueue = motorQueue;
+    consoleArgs.adcDevice = adcDevice;
+    consoleArgs.loggingActive = &logging_active;
+    hal::taskCreate(network::console_task, &consoleArgs, "console_task", 4096, 2);
 
     // Start monitor task for connection health management
     hal::taskCreate(network::monitor_task, nullptr, "monitor_task", 4096, 2);
@@ -541,11 +534,7 @@ void loop() {
     // Only encode and queue if logging is active
     if (logging_active.load(std::memory_order_relaxed)) {
         IMUPacketSlot slot;
-        pb_ostream_t stream = pb_ostream_from_buffer(slot.data, IMU_PACKET_BUF_SIZE);
-
-        if (pb_encode(&stream, imu_Packet_fields, &pkt)) {
-            slot.size = stream.bytes_written;
-
+        if (packet::encodeImuPacket(pkt, slot)) {
             // Try to push to queue (non-blocking)
             if (!imuQueue->tryPush(slot)) {
                 // Queue is full - data loss
@@ -553,7 +542,7 @@ void loop() {
             }
         } else {
             Serial.print("ERROR: Protobuf encoding failed: ");
-            Serial.println(PB_GET_ERROR(&stream));
+            Serial.println(packet::lastEncodeError());
         }
     }
 }

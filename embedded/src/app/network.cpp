@@ -1,9 +1,7 @@
 #include "Arduino.h"
 #include <hal.hpp>
-#include "imu_packet.hpp"
+#include "data/imu_packet.hpp"
 
-#include "gen/Packet.pb.h"
-#include "pb_encode.h"
 #include "WiFi.h"
 #include "arduino_secrets.h"
 #include "main_prelude.hpp"
@@ -299,7 +297,8 @@ static void decodeCommand(uint8_t* rxbuf, std::atomic_bool* logging_active, vert
                 }
             }
 
-        break;
+            break;
+        
         case 'D':  // PID Kd command
             if (!commandQueue) break;
             if (rxbuf[1] != ' ') break;
@@ -335,6 +334,14 @@ static void decodeCommand(uint8_t* rxbuf, std::atomic_bool* logging_active, vert
                 memcpy(&threshold, &rxbuf[2], 4);
                 ads->setThreshold(threshold);
             }
+            break;
+        
+        case 'R':
+            if (!commandQueue) {
+                println("Motor command queue not activated");
+                break;
+            }
+            commandQueue->queuePidRequestCommand();
             break;
 
         case 'H':  // Help
@@ -398,9 +405,10 @@ void console_task(void* arg) {
     static uint8_t rxbuf[RXBUF_SIZE];
 
     memset(rxbuf, 0, RXBUF_SIZE);
-    vertiq::MotorCommandQueue* commandQueue = static_cast<vertiq::MotorCommandQueue*>( ((void**)arg)[0] );
-    adc::ADS1220* adcDevice = static_cast<adc::ADS1220*>( ((void**)arg)[1] );
-    std::atomic_bool* loggingActive = static_cast<std::atomic_bool*>( ((void**)arg)[2] );
+    auto* taskArgs = static_cast<ConsoleTaskArgs*>(arg);
+    vertiq::MotorCommandQueue* commandQueue = taskArgs->commandQueue;
+    adc::ADS1220* adcDevice = taskArgs->adcDevice;
+    std::atomic_bool* loggingActive = taskArgs->loggingActive;
 
     Serial.println("Console task started");
 
@@ -432,8 +440,9 @@ void console_task(void* arg) {
 }
 
 void logging_task(void* arg) {
-    hal::Queue<IMUPacketSlot, 32>* imuQueue = static_cast<hal::Queue<IMUPacketSlot, 32>*>( ((void**)arg)[0] );
-    std::atomic_bool* loggingActive = static_cast<std::atomic_bool*>( ((void**)arg)[1] );
+    auto* taskArgs = static_cast<LoggingTaskArgs*>(arg);
+    hal::Queue<IMUPacketSlot, 32>* imuQueue = taskArgs->imuQueue;
+    std::atomic_bool* loggingActive = taskArgs->loggingActive;
 
     // Initialize UDP - bind to any available port for sending
     udp.begin(RECV_PORT_UDP);

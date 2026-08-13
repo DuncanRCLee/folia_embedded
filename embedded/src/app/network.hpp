@@ -1,8 +1,35 @@
 #pragma once
 #include "Arduino.h"
 #include <WiFi.h>
+#include <atomic>
+
+#include "data/imu_packet.hpp"
+
+namespace hal {
+    template<typename T, size_t N>
+    class Queue;
+}
+
+namespace vertiq {
+    class MotorCommandQueue;
+}
+
+namespace adc {
+    class ADS1220;
+}
 
 namespace network {
+
+    struct LoggingTaskArgs {
+        hal::Queue<IMUPacketSlot, 32>* imuQueue;
+        std::atomic_bool* loggingActive;
+    };
+
+    struct ConsoleTaskArgs {
+        vertiq::MotorCommandQueue* commandQueue;
+        adc::ADS1220* adcDevice;
+        std::atomic_bool* loggingActive;
+    };
 
     // ========================================================================
     // WiFi Mode Selection

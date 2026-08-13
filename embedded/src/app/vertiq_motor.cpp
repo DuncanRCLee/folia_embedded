@@ -214,6 +214,14 @@ int8_t Motor::commandFromChar(char c) {
     return moveToState(target);
 }
 
+void Motor::printPid() {
+    char buf[128];
+    // Formatted with a clear header so Python can easily regex/intercept it later
+    snprintf(buf, sizeof(buf), "[PID_SYNC] P:%.3f I:%.3f D:%.3f\n",
+             getAngleKp(), getAngleKi(), getAngleKd());
+    network::print(buf);
+}
+
 void Motor::printStatus() {
     char buf[384];
     int len = 0;
@@ -258,11 +266,22 @@ int8_t MotorCommandQueue::queuePidCommand(char gainType, float value) {
     return 0;
 }
 
+int8_t MotorCommandQueue::queuePidRequestCommand() {
+    cmdPidRequestPending_ = true;
+    return 0;
+}
+
 int8_t MotorCommandQueue::processCommands() {
     // Process status request
     if (cmdStatusPending_) {
         cmdStatusPending_ = false;
         motor_.printStatus();
+    }
+
+    // Process PID sync request
+    if (cmdPidRequestPending_) {
+        cmdPidRequestPending_ = false;
+        motor_.printPid();
     }
 
     // Process PID updates

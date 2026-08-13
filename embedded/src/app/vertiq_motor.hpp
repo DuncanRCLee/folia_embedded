@@ -59,6 +59,7 @@ class Motor {
         uint8_t getStateAsU8() const { return static_cast<uint8_t>(currentState_); }
 
         // Command interface
+        void printPid();
         void printStatus();
         int8_t commandFromChar(char c);
 
@@ -86,6 +87,7 @@ class MotorCommandQueue {
         int8_t queueStateCommand(int state);
         int8_t queueStatusCommand();
         int8_t queuePidCommand(char gainType, float value);
+        int8_t queuePidRequestCommand();
 
         // Process queued commands (call from main loop)
         int8_t processCommands();
@@ -100,6 +102,7 @@ class MotorCommandQueue {
         volatile char cmdPidType_ = 0;
         volatile float cmdPidValue_ = 0.0f;
         volatile bool cmdPidPending_ = false;
+        volatile bool cmdPidRequestPending_ = false;
 
         // Move tracking
         bool movePending_ = false;
