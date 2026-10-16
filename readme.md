@@ -79,7 +79,7 @@ Examples:
 
 ```bash
 # Start the primary network logger (must specify device IP)
-uv run logger.py --device-ip 192.168.4.1
+uv run logger1.py --device-ip 192.168.4.1
 
 # Start alternate loggers (no device IP required in the run call)
 uv run logger2.py
@@ -153,5 +153,5 @@ See the repository `LICENSE` for license terms.
 Contact and notes
 
 If you need help reproducing experiments or wiring the device, include logs
-from `pyviz/logger.py` and the firmware binary version when opening issues.
+from `pyviz/logger1.py` and the firmware binary version when opening issues.
 

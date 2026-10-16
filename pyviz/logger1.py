@@ -855,7 +855,7 @@ class InteractiveSession:
 def main():
     parser = argparse.ArgumentParser(
         description="IMU ESKF interactive logger with REPL support.",
-        epilog="Example: python logger.py --device-ip 192.168.1.100"
+        epilog="Example: python logger1.py --device-ip 192.168.1.100"
     )
     parser.add_argument("--device-ip", type=str, required=True,
                         help="Device IP address (check Serial output or router DHCP table)")
