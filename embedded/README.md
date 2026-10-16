@@ -1,6 +1,6 @@
 # Folia Embedded Firmware
 
-Firmware for the **Folia Smart Prosthetic Ankle** system running on the **Arduino Portenta H7** (dual-core STM32H747XI, ARM Cortex-M7 @ 480 MHz). The firmware integrates high-speed sensor acquisition, real-time Error-State Kalman Filtering (ESKF), continuous on-device Edge Impulse machine learning inference for terrain classification, safe closed-loop motor actuation, and high-throughput wireless telemetry.
+Firmware for the **Folia Smart Prosthetic Ankle** system running on an **Arduino Portenta H7** (dual-core STM32H747XI, ARM Cortex-M7 @ 480 MHz) mounted on the Folia v5 PCB. The firmware integrates high-speed sensor acquisition, real-time Error-State Kalman Filtering (ESKF), continuous on-device Edge Impulse machine learning inference for terrain classification, safe closed-loop motor actuation, and high-throughput wireless telemetry.
 
 ---
 
